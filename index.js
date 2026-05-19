@@ -14,7 +14,7 @@ const port = process.env.PORT
 app.use(cors())
 app.use(express.json())
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = process.env.MONGO_URI;
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -38,6 +38,15 @@ async function run() {
 
         res.json(result)
     })
+    app.get("/ideas/:id" , async (req, res) => {
+          const { id } = req.params;
+    
+          const result = await ideasCollection.findOne({
+            _id: new ObjectId(id),
+          });
+    
+          res.json(result);
+        });
 
     app.post('/ideas' , async(req , res) => {
         const ideasData = req.body;
