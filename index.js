@@ -71,6 +71,28 @@ async function run() {
 
         res.json(result)
     })
+    app.patch('/ideas/:ideaId/comments/:index/delete', async (req, res) => {
+      const { ideaId, index } = req.params;
+
+      const idea = await ideasCollection.findOne({
+          _id: new ObjectId(ideaId)
+      });
+
+      const updatedComments = idea.comments.filter(
+          (comment, currentIndex) => currentIndex !== parseInt(index)
+      );
+
+      const result = await ideasCollection.updateOne(
+          { _id: new ObjectId(ideaId) },
+          {
+              $set: {
+                  comments: updatedComments
+              }
+          }
+      );
+
+      res.send(result);
+  });
     
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
