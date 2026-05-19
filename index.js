@@ -47,6 +47,22 @@ async function run() {
     
           res.json(result);
         });
+        app.patch('/ideas/:id/comments', async (req, res) => {
+          const id = req.params.id;
+          const commentData = req.body;
+          
+
+          const result = await ideasCollection.updateOne(
+              { _id: new ObjectId(id) },
+              {
+                  $push: {
+                      comments: commentData
+                  }
+              }
+          );
+
+          res.send(result);
+      });
 
     app.post('/ideas' , async(req , res) => {
         const ideasData = req.body;
