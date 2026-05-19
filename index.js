@@ -93,6 +93,28 @@ async function run() {
 
       res.send(result);
   });
+    app.patch('/ideas/:ideaId/comments/:index', async (req, res) => {
+      const { ideaId, index } = req.params;
+      const { text } = req.body;
+
+      const idea = await ideasCollection.findOne({
+          _id: new ObjectId(ideaId)
+      });
+
+      idea.comments[index].text = text;
+      idea.comments[index].time = new Date().toLocaleString();
+
+      const result = await ideasCollection.updateOne(
+          { _id: new ObjectId(ideaId) },
+          {
+              $set: {
+                  comments: idea.comments
+              }
+          }
+      );
+
+      res.send(result);
+  });
     
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
