@@ -38,6 +38,15 @@ async function run() {
 
         res.json(result)
     })
+    app.get("/ideas/trending", async (req, res) => {
+        const result = await ideasCollection.aggregate([
+          {
+            $limit: 6
+          }
+        ]).toArray();
+
+        res.send(result);
+    });
     app.get("/ideas/:id" , async (req, res) => {
           const { id } = req.params;
     
@@ -114,7 +123,8 @@ async function run() {
       );
 
       res.send(result);
-  });
+    });
+    
     
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
