@@ -47,6 +47,7 @@ async function run() {
 
         res.send(result);
     });
+    
     app.get("/ideas/:id" , async (req, res) => {
           const { id } = req.params;
     
@@ -124,6 +125,32 @@ async function run() {
 
       res.send(result);
     });
+    app.get("/my-interactions/:userId", async (req, res) => {
+        const userId = req.params.userId;
+
+        const ideas = await ideasCollection
+            .find({
+            "comments.userId": userId,
+            })
+            .toArray();
+
+        const userComments = [];
+
+        ideas.forEach((idea) => {
+            idea.comments.forEach((comment) => {
+            if (comment.userId === userId) {
+                userComments.push({
+                ideaId: idea._id,
+                ideaTitle: idea.title,
+                commentText: comment.text,
+                commentTime: comment.time,
+                });
+            }
+            });
+        });
+
+        res.send(userComments);
+        });
     
     
     // Send a ping to confirm a successful connection
