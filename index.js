@@ -151,6 +151,39 @@ async function run() {
 
         res.send(userComments);
         });
+        app.get("/my-ideas/:email", async (req, res) => {
+            const email = req.params.email;
+
+            const query = {
+                userEmail: email,
+            };
+
+            const result = await ideasCollection.find(query).toArray();
+
+            res.send(result);
+        });
+        app.delete("/ideas/:id", async (req, res) => {
+            const id = req.params.id;
+
+            const result = await ideasCollection.deleteOne({
+                _id: new ObjectId(id),
+            });
+
+            res.send(result);
+        });
+        app.patch("/ideas/:id", async (req, res) => {
+            const id = req.params.id;
+            const updatedData = req.body;
+
+            const result = await ideasCollection.updateOne(
+                { _id: new ObjectId(id) },
+                {
+                $set: updatedData,
+                }
+            );
+
+            res.send(result);
+            });
     
     
     // Send a ping to confirm a successful connection
