@@ -60,17 +60,31 @@ const verifyToken = async(req , res , next) => {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const db = client.db('idea-vault')
     const ideasCollection = db.collection('ideas')
 
-    app.get('/ideas'  ,async(req , res) => {
-        
-        const result = await ideasCollection.find().toArray();
+    app.get("/ideas", async (req, res) => {
+  const { search, category } = req.query;
 
-        res.json(result)
-    })
+  let query = {};
+
+  if (search) {
+    query.title = {
+      $regex: search,
+      $options: "i",
+    };
+  }
+
+  if (category) {
+    query.category = category;
+  }
+
+  const result = await ideasCollection.find(query).toArray();
+
+  res.json(result);
+});
     app.get("/ideas/trending", async (req, res) => {
         const result = await ideasCollection.aggregate([
           {
@@ -220,7 +234,7 @@ async function run() {
     
     
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
