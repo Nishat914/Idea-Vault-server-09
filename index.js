@@ -48,6 +48,7 @@ const verifyToken = async(req , res , next) => {
     )
     const { payload } = await jwtVerify(token , JWKS);
     console.log(payload)
+    
      next();
   }catch(error){
     return res.status(403).json({
@@ -66,24 +67,24 @@ async function run() {
     const ideasCollection = db.collection('ideas')
 
     app.get("/ideas", async (req, res) => {
-  const { search, category } = req.query;
+        const { search, category } = req.query;
 
-  let query = {};
+        let query = {};
 
-  if (search) {
-    query.title = {
-      $regex: search,
-      $options: "i",
-    };
-  }
+        if (search) {
+          query.title = {
+            $regex: search,
+            $options: "i",
+          };
+        }
 
-  if (category) {
-    query.category = category;
-  }
+        if (category) {
+          query.category = category;
+        }
 
-  const result = await ideasCollection.find(query).toArray();
+        const result = await ideasCollection.find(query).toArray();
 
-  res.json(result);
+        res.json(result);
 });
     app.get("/ideas/trending", async (req, res) => {
         const result = await ideasCollection.aggregate([
@@ -95,7 +96,7 @@ async function run() {
         res.send(result);
     });
     
-    app.get("/ideas/:id" , verifyToken , async (req, res) => {
+    app.get("/ideas/:id" ,verifyToken , async (req, res) => {
           const { id } = req.params;
     
           const result = await ideasCollection.findOne({
@@ -121,7 +122,7 @@ async function run() {
           res.send(result);
       });
 
-    app.post('/ideas', verifyToken , async(req , res) => {
+    app.post('/ideas' ,verifyToken, async(req , res) => {
         const ideasData = req.body;
         console.log(ideasData)
         const result = await ideasCollection.insertOne(ideasData)
@@ -172,7 +173,7 @@ async function run() {
 
       res.send(result);
     });
-    app.get("/my-interactions/:userId", async (req, res) => {
+    app.get("/my-interactions/:userId",verifyToken, async (req, res) => {
         const userId = req.params.userId;
 
         const ideas = await ideasCollection
@@ -209,7 +210,7 @@ async function run() {
 
             res.send(result);
         });
-        app.delete("/ideas/:id", async (req, res) => {
+        app.delete("/ideas/:id",verifyToken , async (req, res) => {
             const id = req.params.id;
 
             const result = await ideasCollection.deleteOne({
@@ -218,7 +219,7 @@ async function run() {
 
             res.send(result);
         });
-        app.patch("/ideas/:id", async (req, res) => {
+        app.patch("/ideas/:id" ,verifyToken, async (req, res) => {
             const id = req.params.id;
             const updatedData = req.body;
 
