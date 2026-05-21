@@ -15,6 +15,7 @@ app.use(cors())
 app.use(express.json())
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const {createRemoteJWKSet , jwtVerify } = require('jose-cjs');
 const uri = process.env.MONGO_URI;
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -24,6 +25,38 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
+
+const verifyToken = async(req , res , next) => {
+  const authHeader = req?.headers.authorization
+  // console.log(authHeader)
+  if(!authHeader) {
+    return res.status(401).json({
+      message : "Unauthorized"
+    })
+  }
+  const token = authHeader.split(" ")[1]
+  if(!token){
+    return res.status(401).json({
+      message: "Unauthorized"
+    });
+  }
+  console.log(token)
+
+  try{
+    const JWKS = createRemoteJWKSet(
+    new URL(`${process.env.CLIENT_URL}/api/auth/jwks`)
+    )
+    const { payload } = await jwtVerify(token , JWKS);
+    console.log(payload)
+     next();
+  }catch(error){
+    return res.status(403).json({
+      message : "Forbidden"
+    });
+  }
+  
+ 
+}
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -32,7 +65,7 @@ async function run() {
     const db = client.db('idea-vault')
     const ideasCollection = db.collection('ideas')
 
-    app.get('/ideas' , async(req , res) => {
+    app.get('/ideas'  ,async(req , res) => {
         
         const result = await ideasCollection.find().toArray();
 
@@ -48,7 +81,7 @@ async function run() {
         res.send(result);
     });
     
-    app.get("/ideas/:id" , async (req, res) => {
+    app.get("/ideas/:id" , verifyToken , async (req, res) => {
           const { id } = req.params;
     
           const result = await ideasCollection.findOne({
@@ -74,7 +107,7 @@ async function run() {
           res.send(result);
       });
 
-    app.post('/ideas' , async(req , res) => {
+    app.post('/ideas', verifyToken , async(req , res) => {
         const ideasData = req.body;
         console.log(ideasData)
         const result = await ideasCollection.insertOne(ideasData)
